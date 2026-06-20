@@ -1,0 +1,167 @@
+/* 全局基礎設定 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.app-container {
+    max-width: 500px;
+    width: 100%;
+    background: white;
+    padding: 24px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* 頂部商標區 */
+.header-zone {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;            /* ✨ 關鍵：確保「標題、按鈕、圓圈」在垂直方向完美對齊 */
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+#ivLogo {
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    background-color: #e8e8ed;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    user-select: none;
+}
+
+/* 圓角按鈕設計 - 對應 bg_button_rounded.xml */
+button {
+    background-color: #0071e3;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px; /* 關鍵圓角 */
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 12px;
+    transition: background-color 0.2s;
+}
+
+button:active {
+    background-color: #005bb5;
+}
+
+button:disabled {
+    background-color: #d2d2d7;
+    color: #86868b;
+    cursor: not-allowed;
+}
+
+/* 💡 修正 1：移除原本的大間距，改為微調按鈕在中間的定位 */
+.top-action-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    margin: 0;                      /* 移除上下外距，避免撐開標題列 */
+    flex: 1;                        /* 讓它佔據中間剩餘的所有空間 */
+}
+
+/* 精準控制讀取題庫按鈕外觀 */
+#lblLoadFile {
+    width: auto;             
+    padding: 8px 18px;              /* ✨ 稍微縮小一點點 padding，塞進標題列高度才完美 */
+    border-radius: 20px;     
+    font-size: 14px;                /* 字體略調成 14px，比例與 22px 標題更搭 */
+    margin-bottom: 0;        
+    white-space: nowrap;            /* 確保文字在小螢幕手機上絕對不會變成兩行 */
+}
+
+/* 💡 修正 2：「下一題」與「結束測驗」左右並排容器 */
+.bottom-action-container {
+    display: flex;           /* 啟用彈性排版，讓子元素左右排列 */
+    gap: 12px;               /* 兩個按鈕的中間空隙 */
+    width: 100%;             /* 容器寬度撐滿 */
+    margin-top: 15px;        /* 與上方題目或解析區塊保持距離 */
+}
+
+/* 讓容器內部的兩個按鈕完美均分剩餘空間 (各佔大約 50%) */
+.bottom-action-container button {
+    flex: 1;                 /* 關鍵：自動平分空間 */
+    margin-bottom: 0;        /* 移除原本 button 預設的 margin-bottom */
+    padding: 14px 0;         /* 稍微加高，讓手機拇指更好點擊 */
+}
+
+/* 給「結束測驗」醒目的警告紅，做出視覺引導，避免與下一題混淆 */
+#btnFinish {
+    background-color: #dc3545;
+}
+#btnFinish:active {
+    background-color: #bd2130;
+}
+
+/* 單選容器與 RadioButton 控制 */
+#rgAnswersContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+#rgAnswersContainer label {
+    background: #f5f5f7;
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    border: 2px solid transparent;
+}
+
+#rgAnswersContainer input[type="radio"]:checked + span {
+    font-weight: bold;
+}
+
+/* 提示與說明區 */
+#tvWrongExplanation {
+    background-color: #fff2f2;
+    color: #d00000;
+    padding: 12px;
+    border-radius: 10px;
+    margin-top: 10px;
+    white-space: pre-line;
+}
+
+/* 裝飾圖與全螢幕勝利圖 */
+#ivDecoration {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    background-color: #eaeaea;
+}
+
+#ivFullVictory {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    z-index: 999;
+    object-fit: cover;
+    cursor: pointer;
+    display: none;
+}
