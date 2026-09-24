@@ -66,24 +66,19 @@
         }
 
         /* =========================================================
-           3. 頂部控制列 (Header Control Panel)
+           3. 頂部控制列 (同一行排列)
         ========================================================= */
         .quiz-header {
             background-color: #F8FAFC;
             border: 1px solid #E2E8F0;
-            padding: 16px 20px;
+            padding: 14px 18px;
             border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .header-group {
-            display: flex;
-            align-items: center;
             gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: nowrap;
         }
 
         /* 按鈕基礎 */
@@ -92,13 +87,14 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
-            padding: 10px 20px;
+            padding: 9px 16px;
             font-size: 15px;
             font-weight: 600;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         .btn:active {
@@ -135,9 +131,9 @@
             color: #ffffff;
         }
 
-        /* 下拉選單 */
+        /* 精簡型下拉選單 */
         .category-select {
-            padding: 9px 16px;
+            padding: 8px 12px;
             font-size: 15px;
             border: 2px solid var(--primary-color);
             border-radius: 8px;
@@ -147,6 +143,7 @@
             cursor: pointer;
             outline: none;
             transition: var(--transition);
+            white-space: nowrap;
         }
 
         .category-select:focus {
@@ -154,7 +151,7 @@
         }
 
         /* =========================================================
-           4. 狀態與測驗資訊 (Status & Info Badges)
+           4. 題庫狀態 (Status Box)
         ========================================================= */
         #statusBox {
             display: none;
@@ -165,28 +162,6 @@
             border-radius: 6px;
             font-size: 14.5px;
             color: #2B6CB0;
-        }
-
-        .quiz-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #F1F5F9;
-            border-radius: 8px;
-            padding: 12px 18px;
-            margin-bottom: 20px;
-            font-size: 15px;
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .badge {
-            background: var(--primary-color);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-left: 4px;
         }
 
         /* =========================================================
@@ -287,7 +262,7 @@
         }
 
         /* =========================================================
-           6. 正確 / 錯誤 / 解析樣式 (Feedback Styles)
+           6. 正確 / 錯誤 / 解析樣式
         ========================================================= */
         .question-item.correct-item {
             background-color: var(--correct-bg);
@@ -378,7 +353,7 @@
         }
 
         /* =========================================================
-           9. 歷史紀錄 Modal (History Modal Window)
+           9. 歷史紀錄 Modal
         ========================================================= */
         .modal-overlay {
             display: none;
@@ -424,7 +399,7 @@
         }
 
         /* =========================================================
-           10. RWD 響應式微調 (Mobile Friendly)
+           10. RWD 響應式微調
         ========================================================= */
         @media (max-width: 650px) {
             body {
@@ -436,17 +411,12 @@
             }
 
             .quiz-header {
-                flex-direction: column;
-                align-items: stretch;
+                gap: 8px;
             }
 
-            .header-group {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .category-select {
-                flex: 1;
+            .btn, .category-select {
+                padding: 8px 10px;
+                font-size: 14px;
             }
 
             .question-item {
@@ -482,35 +452,25 @@
     <!-- 隱藏 Excel 檔案選擇器 -->
     <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
 
-    <!-- 頂部控制列 -->
+    <!-- 頂部控制列（三項功能放在同一行） -->
     <div class="quiz-header">
-        <div class="header-group">
-            <button class="btn btn-outline" onclick="triggerExcelImport()">
-                📂 讀取題庫
-            </button>
-        </div>
+        <button class="btn btn-outline" onclick="triggerExcelImport()">
+            📂 讀取題庫
+        </button>
 
-        <div class="header-group">
-            <select id="categorySelect" class="category-select">
-                <option value="A">A 類別（預檢）</option>
-                <option value="B">B 類別（修護）</option>
-                <option value="C">C 類別（幕僚）</option>
-            </select>
+        <select id="categorySelect" class="category-select">
+            <option value="A">類別：A 預檢</option>
+            <option value="B">類別：B 修護</option>
+            <option value="C">類別：C 幕僚</option>
+        </select>
 
-            <button class="btn btn-action" onclick="generateQuestions()">
-                🎲 產生題目
-            </button>
-        </div>
+        <button class="btn btn-action" onclick="generateQuestions()">
+            🎲 產生題目
+        </button>
     </div>
 
     <!-- 題庫狀態區域 -->
     <div id="statusBox"></div>
-
-    <!-- 測驗資訊區域 -->
-    <div id="quizInfo" class="quiz-info" style="display:none;">
-        <span>測驗類別：<strong id="currentCategoryText" class="badge">A</strong></span>
-        <span>出題數量：<strong id="currentQuestionCount" class="badge">0</strong> 題</span>
-    </div>
 
     <!-- 題目列表區塊 -->
     <div id="questionsContainer">
@@ -529,7 +489,7 @@
         </button>
 
         <button class="btn btn-action" style="padding: 12px 32px; font-size: 16px;" onclick="submitQuiz()">
-            與交卷 / 結束測驗
+            交卷 / 結束測驗
         </button>
     </div>
 
@@ -549,7 +509,7 @@
 
 <script>
 /* ============================================================
-   全域資料與變數 (核心 logic 保持完整)
+   全域資料與變數
 ============================================================ */
 let globalLoadedQuestions = [];
 let currentQuizList = [];
@@ -690,10 +650,6 @@ function showCategoryInfo() {
         <strong>已載入【${categoryNames[currentCategory]}】題庫</strong><br>
         是非題：${tfCount} 題 ／ 選擇題：${selectCount} 題 ／ 總計：${total} 題
     `;
-
-    document.getElementById("currentCategoryText").textContent = currentCategory;
-    document.getElementById("currentQuestionCount").textContent = total;
-    document.getElementById("quizInfo").style.display = "flex";
 }
 
 function updateStatus() {
@@ -743,14 +699,11 @@ function generateQuestions() {
         renderQuestion(q, index, container);
     });
 
-    document.getElementById("currentCategoryText").textContent = currentCategory;
-    document.getElementById("currentQuestionCount").textContent = "20";
-
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* ============================================================
-   7. 渲染單一題目 (包含 UI 優化)
+   7. 渲染單一題目
 ============================================================ */
 function renderQuestion(q, index, container) {
     const displayIndex = index + 1;
