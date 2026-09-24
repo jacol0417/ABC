@@ -452,10 +452,10 @@
     <!-- 隱藏 Excel 檔案選擇器 -->
     <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
 
-    <!-- 頂部控制列（三項功能放在同一行） -->
+    <!-- 頂部控制列 -->
     <div class="quiz-header">
         <button class="btn btn-outline" onclick="triggerExcelImport()">
-        讀取題庫
+            📂 讀取題庫
         </button>
 
         <select id="categorySelect" class="category-select">
@@ -465,7 +465,7 @@
         </select>
 
         <button class="btn btn-action" onclick="generateQuestions()">
-        產生題目
+            🎲 產生題目
         </button>
     </div>
 
@@ -475,7 +475,7 @@
     <!-- 題目列表區塊 -->
     <div id="questionsContainer">
         <div class="empty-message">
-            請點擊上方「讀取題庫」按鈕載入 Excel 檔案以開始測驗。
+            請點擊上方「📂 讀取題庫」按鈕載入 Excel 檔案以開始測驗。
         </div>
     </div>
 
@@ -669,7 +669,7 @@ function shuffleArray(array) {
 }
 
 /* ============================================================
-   6. 產生 20 題
+   6. 產生 20 題 (新邏輯：先是非題再選擇題，是非題不足由選擇題補足)
 ============================================================ */
 function generateQuestions() {
     if (globalLoadedQuestions.length === 0) {
@@ -685,8 +685,31 @@ function generateQuestions() {
         return;
     }
 
-    const shuffled = shuffleArray(categoryQuestions);
-    currentQuizList = shuffled.slice(0, 20).map(q => ({
+    // 將題目依題型分開
+    const tfQuestions = categoryQuestions.filter(q => q.isTrueFalse);
+    const selQuestions = categoryQuestions.filter(q => !q.isTrueFalse);
+
+    // 打亂是非題與選擇題
+    const shuffledTF = shuffleArray(tfQuestions);
+    const shuffledSel = shuffleArray(selQuestions);
+
+    // 判斷是非題要抽幾題（最多 10 題，不足則全拿）
+    const tfNeeded = Math.min(10, shuffledTF.length);
+    const selNeeded = 20 - tfNeeded;
+
+    // 檢查選擇題數量是否足夠補滿 20 題
+    if (shuffledSel.length < selNeeded) {
+        alert(`【${categoryNames[currentCategory]}】題型比例不足，無法湊滿 20 題！\n（是非題：${shuffledTF.length} 題，選擇題：${shuffledSel.length} 題）`);
+        return;
+    }
+
+    // 抽取題目：是非題在前，選擇題在後
+    const selectedTF = shuffledTF.slice(0, tfNeeded);
+    const selectedSel = shuffledSel.slice(0, selNeeded);
+
+    const combinedList = [...selectedTF, ...selectedSel];
+
+    currentQuizList = combinedList.map(q => ({
         ...q,
         userAnswer: ""
     }));
