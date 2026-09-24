@@ -56,15 +56,6 @@
             box-shadow: var(--shadow);
         }
 
-        .system-title {
-            text-align: center;
-            font-size: 24px;
-            color: var(--primary-color);
-            margin-bottom: 24px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
         /* =========================================================
            3. 頂部控制列 (同一行排列)
         ========================================================= */
@@ -447,8 +438,6 @@
 
 <div class="quiz-container">
 
-    <h2 class="system-title">線上測驗系統</h2>
-
     <!-- 隱藏 Excel 檔案選擇器 -->
     <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
 
@@ -669,7 +658,7 @@ function shuffleArray(array) {
 }
 
 /* ============================================================
-   6. 產生 20 題 (新邏輯：先是非題再選擇題，是非題不足由選擇題補足)
+   6. 產生 20 題 (先是非題再選擇題，是非題不足由選擇題補足)
 ============================================================ */
 function generateQuestions() {
     if (globalLoadedQuestions.length === 0) {
