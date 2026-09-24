@@ -182,7 +182,7 @@
 
 <div class="quiz-container">
     <div class="quiz-header">
-        <h2>線上測驗 (共 20 題)</h2>
+        <h2>ABC測驗</h2>
         <button class="btn-action" onclick="startNewQuiz()">重新產生試卷</button>
     </div>
 
@@ -198,35 +198,6 @@
 </div>
 
 <script>
-// ===================================================
-// 模擬 QuizPoolManager 題庫管理器 (實際專案中請替換為真實 API/模組)
-// ===================================================
-const quizPoolManager = {
-    generate20Questions: function() {
-        const list = [];
-        
-        // 產生 10 題是非題 (帶有模擬圖片標籤，測試移除效果)
-        for (let i = 1; i <= 10; i++) {
-            list.push({
-                isTrueFalse: true,
-                questionText: `這是第 ${i} 條是非題說明文字。<img src="example.jpg" alt="test"> 請問本敘述是否正確？`,
-                standardAnswer: i % 2 === 0 ? "O" : "X"
-            });
-        }
-        
-        // 產生 10 題選擇題 (帶有 Markdown 圖片與 <img> 標籤)
-        for (let i = 1; i <= 10; i++) {
-            list.push({
-                isTrueFalse: false,
-                questionText: `這是第 ${i + 10} 條選擇題說明。![圖片說明](http://example.com/a.png) 請選擇正確答案：(1) 選項一 (2) 選項二 (3) 選項三 (4) 選項四`,
-                standardAnswer: String((i % 4) + 1) // 答案為 1, 2, 3, 4 循環
-            });
-        }
-        
-        return list;
-    }
-};
-
 // 全域測驗狀態
 let currentQuizList = [];
 
@@ -243,11 +214,14 @@ function removeImagesFromText(text) {
 }
 
 // ===================================================
-// 1. 產生 20 題試卷 (startNewQuiz)
+// 1. 從 QuizPoolManager 產生 20 題試卷 (startNewQuiz)
 // ===================================================
 function startNewQuiz() {
-    // 取得 20 題並初始化 userAnswer 為空字串 ""
-    currentQuizList = quizPoolManager.generate20Questions().map(q => ({
+    // 【讀取真實題庫】：呼叫 QuizPoolManager 取得 10 是非 + 10 選擇並複製，初始化 userAnswer 為空字串 ""
+    // （如果您的 QuizPoolManager 呼叫方式需要帶分類參數，例如 quizPoolManager.generate20Questions('A')，可在這裡帶入）
+    const rawQuestions = quizPoolManager.generate20Questions();
+
+    currentQuizList = rawQuestions.map(q => ({
         ...q,
         userAnswer: ""
     }));
@@ -256,13 +230,13 @@ function startNewQuiz() {
     container.innerHTML = "";
     document.getElementById("summaryResult").style.display = "none";
 
-    // 走訪 20 題並渲染成 DOM
+    // 走訪 20 題並渲染成 DOM 元素
     currentQuizList.forEach((q, index) => {
         const displayIndex = index + 1;
         const itemEl = document.createElement("div");
         itemEl.className = "question-item";
 
-        // 【重點】：先移除題目文字中的所有圖片資訊
+        // 清除題目文字中的圖片
         const cleanText = removeImagesFromText(q.questionText);
 
         if (q.isTrueFalse) {
@@ -290,7 +264,7 @@ function startNewQuiz() {
 
         } else {
             // ================= 選擇題邏輯 =================
-            // 正則替換 (1), (2)... 為可點擊 span
+            // 使用正則表達式把選項數字 (1), (2)... 替換成可點擊 span
             const formattedText = cleanText.replace(/\(([1-9])\)/g, (match, p1) => {
                 return `<span class="option-click" data-opt="${p1}">(${p1})</span>`;
             });
@@ -306,20 +280,19 @@ function startNewQuiz() {
             const ansBox = itemEl.querySelector(`#ans-box-${index}`);
             const optionSpans = itemEl.querySelectorAll(".option-click");
 
-            // 1. 點擊選項數字：自動填入答案框 + 加上 selected 高亮
+            // 1. 綁定選項文字點擊事件：填入答案框 + 加上高亮
             optionSpans.forEach(span => {
                 span.addEventListener("click", (e) => {
                     const optValue = e.target.getAttribute("data-opt");
                     q.userAnswer = optValue;
                     ansBox.textContent = optValue;
 
-                    // 移除其他選項高亮，為當前選中項加上 selected
                     optionSpans.forEach(s => s.classList.remove("selected"));
                     e.target.classList.add("selected");
                 });
             });
 
-            // 2. 點擊答案框：重置清空答案與高亮
+            // 2. 綁定答案框點擊事件：清空答案與高亮
             ansBox.addEventListener("click", () => {
                 q.userAnswer = "";
                 ansBox.textContent = "";
@@ -328,7 +301,7 @@ function startNewQuiz() {
         }
     });
 
-    // 捲動回頁面頂部
+    // 捲動回頂部
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -345,14 +318,15 @@ function submitQuiz() {
         const isAnswered = q.userAnswer !== "";
         if (isAnswered) answeredCount++;
 
-        const isCorrect = (q.userAnswer === q.standardAnswer);
+        // 對比標準答案 (標準答案欄位名稱依您 QuizPoolManager 返回的物件屬性為準，如 q.standardAnswer 或 q.answer)
+        const standardAns = q.standardAnswer || q.answer;
+        const isCorrect = (q.userAnswer === standardAns);
         if (isCorrect) correctCount++;
 
-        // 取得該題 DOM 進行狀態更新 (檢討模式)
+        // 取得 UI DOM 節點更新狀態
         const itemEl = document.querySelectorAll(".question-item")[index];
         const ansBox = itemEl.querySelector(`.answer-box`);
 
-        // 清除先前樣式
         itemEl.classList.remove("correct-item", "wrong-item");
         ansBox.classList.remove("correct-box", "wrong-box");
 
@@ -363,21 +337,18 @@ function submitQuiz() {
             itemEl.classList.add("wrong-item");
             ansBox.classList.add("wrong-box");
 
-            // 顯示標準答案提醒文字
             let hintEl = itemEl.querySelector(".correct-hint");
             if (!hintEl) {
                 hintEl = document.createElement("span");
                 hintEl.className = "correct-hint";
                 itemEl.querySelector(".q-header").appendChild(hintEl);
             }
-            hintEl.textContent = `(正確答案: ${q.standardAnswer})`;
+            hintEl.textContent = `(正確答案: ${standardAns})`;
         }
     });
 
-    // 每題 5 分 (20 題滿分 100)
     const score = correctCount * 5;
 
-    // 顯示結果面板
     const summaryResult = document.getElementById("summaryResult");
     summaryResult.style.display = "block";
     summaryResult.innerHTML = `
@@ -386,7 +357,6 @@ function submitQuiz() {
         <p>答對題數：${correctCount} / 20 題（已答：${answeredCount} 題，未答：${20 - answeredCount} 題）</p>
     `;
 
-    // 捲動至結果面板
     summaryResult.scrollIntoView({ behavior: 'smooth' });
 }
 
