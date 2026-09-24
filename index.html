@@ -444,7 +444,7 @@
     <!-- 頂部控制列 -->
     <div class="quiz-header">
         <button class="btn btn-outline" onclick="triggerExcelImport()">
-        讀取題庫
+            📂 讀取題庫
         </button>
 
         <select id="categorySelect" class="category-select">
@@ -454,7 +454,7 @@
         </select>
 
         <button class="btn btn-action" onclick="generateQuestions()">
-        產生題目
+            🎲 產生題目
         </button>
     </div>
 
@@ -518,7 +518,7 @@ const categoryNames = {
 };
 
 /* ============================================================
-   初始化監聽
+   初始化監聽 & 快取恢復
 ============================================================ */
 document.addEventListener("DOMContentLoaded", function() {
     const fileInput = document.getElementById("excelFileInput");
@@ -526,7 +526,25 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const categorySelect = document.getElementById("categorySelect");
     categorySelect.addEventListener("change", onCategoryChange);
+
+    // 嘗試從 LocalStorage 讀取歷史快取的題庫
+    loadCachedQuestions();
 });
+
+function loadCachedQuestions() {
+    const savedData = localStorage.getItem("globalLoadedQuestions");
+    if (savedData) {
+        try {
+            globalLoadedQuestions = JSON.parse(savedData);
+            if (globalLoadedQuestions.length > 0) {
+                showCategoryInfo();
+            }
+        } catch (e) {
+            console.error("快取解析失敗，清除快取", e);
+            localStorage.removeItem("globalLoadedQuestions");
+        }
+    }
+}
 
 /* ============================================================
    1. 觸發 Excel 上傳
@@ -536,7 +554,7 @@ function triggerExcelImport() {
 }
 
 /* ============================================================
-   2. Excel 選擇後開始解析
+   2. Excel 選擇後開始解析 & 寫入快取
 ============================================================ */
 function handleExcelFileSelect(event) {
     const file = event.target.files[0];
@@ -584,6 +602,13 @@ function handleExcelFileSelect(event) {
                         userAnswer: ""
                     });
                 }
+            }
+
+            // 儲存至快取
+            try {
+                localStorage.setItem("globalLoadedQuestions", JSON.stringify(globalLoadedQuestions));
+            } catch (err) {
+                console.warn("題庫較大，無法寫入 LocalStorage 快取", err);
             }
 
             updateStatus();
@@ -636,7 +661,7 @@ function showCategoryInfo() {
 
     statusBox.style.display = "block";
     statusBox.innerHTML = `
-        <strong>已載入【${categoryNames[currentCategory]}】題庫</strong><br>
+        <strong>已載入【${categoryNames[currentCategory]}】題庫</strong>（已自快取恢復）<br>
         是非題：${tfCount} 題 ／ 選擇題：${selectCount} 題 ／ 總計：${total} 題
     `;
 }
