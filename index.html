@@ -1,407 +1,2367 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>線上測驗系統 - 網頁版</title>
+
+    <title>線上測驗系統</title>
+
+    <!-- SheetJS：解析 Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
-        /* ================= 基礎樣式與版面 ================= */
+
+        /* =========================================================
+           基礎設定
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
+
             background-color: #f4f6f8;
+
             margin: 0;
             padding: 20px;
+
             color: #333;
         }
 
+
+        /* =========================================================
+           主容器
+        ========================================================= */
+
         .quiz-container {
-            max-width: 800px;
+
+            max-width: 900px;
+
             margin: 0 auto;
+
             background: #ffffff;
+
             padding: 24px;
+
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
+
+        /* =========================================================
+           頂部控制列
+        ========================================================= */
+
         .quiz-header {
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
             border-bottom: 2px solid #1B4965;
+
             padding-bottom: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
+
+            margin-bottom: 20px;
+
             gap: 12px;
         }
 
-        .quiz-header h2 {
-            margin: 0;
-            color: #1B4965;
+
+        .header-left {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
         }
 
-        /* 題庫讀取控制區 */
-        .pool-controls {
+
+        .header-right {
+
             display: flex;
+
             align-items: center;
+
             gap: 10px;
         }
 
-        .category-select {
-            padding: 8px 12px;
-            font-size: 16px;
-            border: 2px solid #1B4965;
-            border-radius: 6px;
-            background-color: #fff;
-            color: #1B4965;
-            font-weight: bold;
-            cursor: pointer;
-        }
+
+        /* =========================================================
+           按鈕
+        ========================================================= */
 
         .btn-action {
+
             background-color: #1B4965;
+
             color: #ffffff;
+
             border: none;
+
             padding: 10px 18px;
+
             font-size: 15px;
+
             border-radius: 6px;
+
             cursor: pointer;
+
             transition: background-color 0.2s;
         }
 
+
         .btn-action:hover {
+
             background-color: #0c2b3e;
         }
 
+
         .btn-secondary {
-            background-color: #6c757d;
-        }
 
-        .btn-secondary:hover {
             background-color: #5a6268;
-        }
 
-        /* ================= 題目區塊樣式 ================= */
-        .question-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 16px;
-            border-bottom: 1px solid #E0E0E0;
-            gap: 16px;
+            color: #ffffff;
+
+            border: none;
+
+            padding: 10px 18px;
+
+            font-size: 15px;
+
+            border-radius: 6px;
+
+            cursor: pointer;
+
             transition: background-color 0.2s;
         }
 
-        .q-header {
-            flex: 1;
-            line-height: 1.6;
-            font-size: 16px;
+
+        .btn-secondary:hover {
+
+            background-color: #3d4348;
         }
 
+
+        /* =========================================================
+           類別選擇
+        ========================================================= */
+
+        .category-select {
+
+            padding: 8px 12px;
+
+            font-size: 15px;
+
+            border: 2px solid #1B4965;
+
+            border-radius: 6px;
+
+            background-color: #ffffff;
+
+            color: #1B4965;
+
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           題庫狀態
+        ========================================================= */
+
+        #statusBox {
+
+            display: none;
+
+            background-color: #e8f4f8;
+
+            border-left: 4px solid #2980b9;
+
+            padding: 12px 15px;
+
+            margin-bottom: 20px;
+
+            border-radius: 0 4px 4px 0;
+
+            line-height: 1.6;
+        }
+
+
+        /* =========================================================
+           題目數量資訊
+        ========================================================= */
+
+        .quiz-info {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            background-color: #f8f9fa;
+
+            border-radius: 6px;
+
+            padding: 10px 14px;
+
+            margin-bottom: 12px;
+
+            font-size: 14px;
+
+            color: #555;
+        }
+
+
+        /* =========================================================
+           題目區域
+        ========================================================= */
+
+        #questionsContainer {
+
+            width: 100%;
+        }
+
+
+        .question-item {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: flex-start;
+
+            padding: 16px 8px;
+
+            border-bottom: 1px solid #E0E0E0;
+
+            gap: 16px;
+
+            transition: background-color 0.2s;
+        }
+
+
+        .question-item:hover {
+
+            background-color: #fafafa;
+        }
+
+
+        .q-header {
+
+            flex: 1;
+
+            line-height: 1.7;
+
+            font-size: 16px;
+
+            min-width: 0;
+        }
+
+
         .q-title {
+
             word-break: break-word;
         }
 
-        /* 備援隱藏機制：強制隱藏題目內部所有圖片 */
+
+        /* =========================================================
+           隱藏圖片
+        ========================================================= */
+
         .question-item img,
         .question-item .q-image-container {
+
             display: none !important;
         }
 
-        /* 答案框 (預設樣式) */
+
+        /* =========================================================
+           答案框
+        ========================================================= */
+
         .answer-box {
+
             width: 48px;
+
             height: 48px;
+
             min-width: 48px;
+
             border: 2px solid #1B4965;
+
             border-radius: 8px;
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
+
             font-size: 20px;
+
             font-weight: bold;
+
             cursor: pointer;
+
             user-select: none;
+
             background-color: #F8F9FA;
+
             color: #1B4965;
+
             transition: all 0.2s ease;
         }
 
+
         .answer-box:hover {
+
             background-color: #eaf2f8;
         }
 
-        /* 選擇題點擊選項數字 (1), (2) 樣式 */
+
+        /* =========================================================
+           選擇題選項
+        ========================================================= */
+
         .option-click {
+
             color: #0056b3;
+
             text-decoration: underline;
+
             font-weight: bold;
+
             cursor: pointer;
+
             padding: 2px 6px;
+
             margin: 0 2px;
+
             border-radius: 4px;
+
             display: inline-block;
+
             transition: all 0.2s;
         }
 
+
         .option-click:hover {
+
             color: #003366;
+
             background-color: #EBF3FA;
         }
 
-        /* 被選中的選項數字高亮 */
+
         .option-click.selected {
+
             color: #ffffff;
+
             background-color: #0056b3;
+
             text-decoration: none;
         }
 
-        /* ================= 交卷與結果檢討樣式 ================= */
+
+        /* =========================================================
+           正確 / 錯誤
+        ========================================================= */
+
         .question-item.correct-item {
-            background-color: #F0FFF4; /* 淡綠色 */
+
+            background-color: #F0FFF4;
         }
+
 
         .question-item.wrong-item {
-            background-color: #FFF5F5; /* 淡紅色 */
+
+            background-color: #FFF5F5;
         }
 
+
         .answer-box.correct-box {
+
             border-color: #38A169;
+
             color: #38A169;
+
             background-color: #E6FFFA;
         }
 
+
         .answer-box.wrong-box {
+
             border-color: #E53E3E;
+
             color: #E53E3E;
+
             background-color: #FED7D7;
         }
 
+
         .correct-hint {
+
             display: inline-block;
+
             margin-left: 8px;
+
             color: #E53E3E;
+
             font-weight: bold;
+
             font-size: 14px;
         }
 
-        /* 總結卡片 */
-        #summaryResult {
+
+        /* =========================================================
+           解析
+        ========================================================= */
+
+        .explanation {
+
             display: none;
+
+            margin-top: 8px;
+
+            padding: 8px 10px;
+
+            background-color: #f8f9fa;
+
+            border-left: 3px solid #999;
+
+            font-size: 14px;
+
+            color: #555;
+
+            line-height: 1.6;
+        }
+
+
+        .explanation.show {
+
+            display: block;
+        }
+
+
+        /* =========================================================
+           測驗結果
+        ========================================================= */
+
+        #summaryResult {
+
+            display: none;
+
             margin-top: 24px;
+
             padding: 20px;
+
             background-color: #EBF8FF;
+
             border: 2px solid #3182CE;
+
             border-radius: 8px;
+
             text-align: center;
         }
 
+
         #summaryResult h3 {
+
             margin-top: 0;
+
             color: #2B6CB0;
         }
 
+
+        /* =========================================================
+           底部按鈕
+        ========================================================= */
+
         .footer-actions {
+
             margin-top: 24px;
-            text-align: center;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
         }
+
+
+        /* =========================================================
+           歷史紀錄 Modal
+        ========================================================= */
+
+        .modal-overlay {
+
+            display: none;
+
+            position: fixed;
+
+            top: 0;
+
+            left: 0;
+
+            width: 100%;
+
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.5);
+
+            justify-content: center;
+
+            align-items: center;
+
+            z-index: 1000;
+        }
+
+
+        .modal-content {
+
+            background: white;
+
+            padding: 24px;
+
+            border-radius: 8px;
+
+            max-width: 500px;
+
+            width: 90%;
+
+            max-height: 80vh;
+
+            overflow-y: auto;
+        }
+
+
+        /* =========================================================
+           題庫尚未載入提示
+        ========================================================= */
+
+        .empty-message {
+
+            text-align: center;
+
+            color: #888;
+
+            padding: 40px 10px;
+        }
+
+
+        /* =========================================================
+           手機版
+        ========================================================= */
+
+        @media (max-width: 650px) {
+
+            body {
+
+                padding: 10px;
+            }
+
+
+            .quiz-container {
+
+                padding: 14px;
+            }
+
+
+            .quiz-header {
+
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .header-left,
+            .header-right {
+
+                justify-content: space-between;
+            }
+
+
+            .header-right {
+
+                flex-wrap: wrap;
+            }
+
+
+            .category-select {
+
+                flex: 1;
+            }
+
+
+            .question-item {
+
+                gap: 8px;
+            }
+
+
+            .q-header {
+
+                font-size: 15px;
+            }
+        }
+
     </style>
 </head>
+
+
 <body>
 
 <div class="quiz-container">
+
+
+    <!-- =========================================================
+         隱藏 Excel 選擇器
+    ========================================================== -->
+
+    <input
+        type="file"
+        id="excelFileInput"
+        accept=".xlsx,.xls"
+        style="display:none;"
+    >
+
+
+    <!-- =========================================================
+         頂部控制列
+    ========================================================== -->
+
     <div class="quiz-header">
-        <h2>線上測驗 (共 20 題)</h2>
-        
-        <!-- 題庫讀取與類別選擇區塊 -->
-        <div class="pool-controls">
-            <select id="categorySelect" class="category-select">
-                <option value="A">類別 A</option>
-                <option value="B">類別 B</option>
-                <option value="C">類別 C</option>
-            </select>
-            <button class="btn-action" onclick="loadAndStartQuiz()">讀取題庫並產生試卷</button>
+
+        <div class="header-left">
+
+            <button
+                class="btn-action"
+                onclick="triggerExcelImport()"
+            >
+                讀取題庫
+            </button>
+
         </div>
+
+
+        <div class="header-right">
+
+            <select
+                id="categorySelect"
+                class="category-select"
+            >
+
+                <option value="A">
+                    A 類別（預檢）
+                </option>
+
+                <option value="B">
+                    B 類別（修護）
+                </option>
+
+                <option value="C">
+                    C 類別（幕僚）
+                </option>
+
+            </select>
+
+
+            <button
+                class="btn-action"
+                onclick="generateQuestions()"
+            >
+                產生題目
+            </button>
+
+        </div>
+
     </div>
 
-    <!-- 題目渲染區域 -->
-    <div id="questionsContainer"></div>
 
-    <!-- 測驗結果卡片 -->
+    <!-- =========================================================
+         題庫狀態
+    ========================================================== -->
+
+    <div id="statusBox"></div>
+
+
+    <!-- =========================================================
+         測驗資訊
+    ========================================================== -->
+
+    <div
+        id="quizInfo"
+        class="quiz-info"
+        style="display:none;"
+    >
+
+        <span>
+            測驗類別：
+            <strong id="currentCategoryText">A</strong>
+        </span>
+
+        <span>
+            題數：
+            <strong id="currentQuestionCount">0</strong>
+        </span>
+
+    </div>
+
+
+    <!-- =========================================================
+         題目區
+    ========================================================== -->
+
+    <div id="questionsContainer">
+
+        <div class="empty-message">
+            請先點擊「讀取題庫」載入 Excel 檔案。
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         測驗結果
+    ========================================================== -->
+
     <div id="summaryResult"></div>
 
+
+    <!-- =========================================================
+         底部按鈕
+    ========================================================== -->
+
     <div class="footer-actions">
-        <button class="btn-action" style="padding: 12px 32px; font-size: 18px;" onclick="submitQuiz()">結束測驗並交卷</button>
+
+        <button
+            class="btn-secondary"
+            onclick="showHistory()"
+        >
+            歷史紀錄
+        </button>
+
+
+        <button
+            class="btn-action"
+            style="
+                padding:10px 24px;
+                font-size:16px;
+            "
+            onclick="submitQuiz()"
+        >
+            結束測驗
+        </button>
+
     </div>
+
 </div>
 
+
+<!-- =========================================================
+     歷史紀錄 Modal
+========================================================== -->
+
+<div
+    id="historyModal"
+    class="modal-overlay"
+>
+
+    <div class="modal-content">
+
+        <h3>
+            歷史測驗紀錄
+        </h3>
+
+
+        <div id="historyList">
+            尚無紀錄
+        </div>
+
+
+        <br>
+
+
+        <button
+            class="btn-secondary"
+            style="width:100%;"
+            onclick="closeHistory()"
+        >
+            關閉
+        </button>
+
+    </div>
+
+</div>
+
+
 <script>
-// 全域測驗狀態
+
+/* ============================================================
+   全域資料
+============================================================ */
+
+/*
+    globalLoadedQuestions
+    ----------------------
+    存放從 Excel 讀進來的完整題庫
+*/
+
+let globalLoadedQuestions = [];
+
+
+/*
+    currentQuizList
+    ----------------
+    存放目前這一次抽出的 20 題
+*/
+
 let currentQuizList = [];
 
-// ===================================================
-// Helper 函式：過濾與清空文字中的所有圖片標籤
-// ===================================================
-function removeImagesFromText(text) {
-    if (!text) return "";
-    let cleaned = text.replace(/<img[^>]*>/gi, "");
-    cleaned = cleaned.replace(/!\[.*?\]\(.*?\)/g, "");
-    return cleaned;
+
+/*
+    quizHistory
+    ----------------
+    存放本次開啟網頁期間的測驗紀錄
+*/
+
+let quizHistory = [];
+
+
+/*
+    currentCategory
+    ----------------
+    目前選擇的類別
+*/
+
+let currentCategory = "A";
+
+
+/* ============================================================
+   類別對應
+============================================================ */
+
+const classPropMap = {
+
+    A: "isClassA",
+
+    B: "isClassB",
+
+    C: "isClassC"
+
+};
+
+
+const categoryNames = {
+
+    A: "A 預檢",
+
+    B: "B 修護",
+
+    C: "C 幕僚"
+
+};
+
+
+/* ============================================================
+   初始化
+============================================================ */
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    const fileInput =
+        document.getElementById("excelFileInput");
+
+    fileInput.addEventListener(
+        "change",
+        handleExcelFileSelect
+    );
+
+
+    const categorySelect =
+        document.getElementById("categorySelect");
+
+    categorySelect.addEventListener(
+        "change",
+        onCategoryChange
+    );
+
+});
+
+
+/* ============================================================
+   1. 開啟 Excel
+============================================================ */
+
+function triggerExcelImport() {
+
+    document
+        .getElementById("excelFileInput")
+        .click();
+
 }
 
-// ===================================================
-// 1. 讀取題庫並產生 20 題試卷 (loadAndStartQuiz)
-// ===================================================
-function loadAndStartQuiz() {
-    const category = document.getElementById("categorySelect").value;
-    
-    // 【讀取 QuizPoolManager 題庫】：傳入選擇的類別 A/B/C，取得 10 是非 + 10 選擇
-    const rawQuestions = quizPoolManager.generate20Questions(category);
 
-    if (!rawQuestions || rawQuestions.length === 0) {
-        alert("無法讀取題庫或該類別無足夠題目！");
+/* ============================================================
+   2. Excel 選擇後開始解析
+============================================================ */
+
+function handleExcelFileSelect(event) {
+
+    const file =
+        event.target.files[0];
+
+
+    if (!file) {
+
         return;
+
     }
 
-    currentQuizList = rawQuestions.map(q => ({
-        ...q,
-        userAnswer: ""
-    }));
 
-    const container = document.getElementById("questionsContainer");
-    container.innerHTML = "";
-    document.getElementById("summaryResult").style.display = "none";
+    const reader =
+        new FileReader();
 
-    // 走訪 20 題並渲染成 DOM
-    currentQuizList.forEach((q, index) => {
-        const displayIndex = index + 1;
-        const itemEl = document.createElement("div");
-        itemEl.className = "question-item";
 
-        // 清除題目內文中的所有圖片標籤
-        const cleanText = removeImagesFromText(q.questionText);
+    reader.onload = function(e) {
+
+        try {
+
+            const data =
+                new Uint8Array(e.target.result);
+
+
+            /*
+                讀取 Excel
+            */
+
+            const workbook =
+                XLSX.read(
+                    data,
+                    {
+                        type: "array"
+                    }
+                );
+
+
+            /*
+                使用第一個工作表
+            */
+
+            const firstSheetName =
+                workbook.SheetNames[0];
+
+
+            const worksheet =
+                workbook.Sheets[firstSheetName];
+
+
+            /*
+                使用二維陣列方式讀取
+                因為 Excel 欄位位置固定
+            */
+
+            const sheetData =
+                XLSX.utils.sheet_to_json(
+                    worksheet,
+                    {
+                        header: 1
+                    }
+                );
+
+
+            /*
+                清空舊題庫
+            */
+
+            globalLoadedQuestions = [];
+
+
+            /*
+                從 Excel 第 3 列開始
+                JavaScript index = 2
+            */
+
+            for (
+                let rowIndex = 2;
+                rowIndex < sheetData.length;
+                rowIndex++
+            ) {
+
+                const row =
+                    sheetData[rowIndex];
+
+
+                /*
+                    空白列跳過
+                */
+
+                if (
+                    !row ||
+                    row.length === 0
+                ) {
+
+                    continue;
+
+                }
+
+
+                /*
+                    C 欄 = index 2
+                    E 欄 = index 4
+                    F 欄 = index 5
+                    H 欄 = index 7
+                    I 欄 = index 8
+                    J 欄 = index 9
+                */
+
+                let rawAns =
+                    row[2]
+                        ? String(row[2])
+                            .trim()
+                            .replace(/\.0$/, "")
+                        : "";
+
+
+                const qText =
+                    row[4]
+                        ? String(row[4]).trim()
+                        : "";
+
+
+                const explanation =
+                    row[5]
+                        ? String(row[5]).trim()
+                        : "";
+
+
+                /*
+                    全形 O/X → 半形
+                    並統一大寫
+                */
+
+                rawAns =
+                    rawAns
+                        .replace(/Ｏ/g, "O")
+                        .replace(/Ｘ/g, "X")
+                        .toUpperCase();
+
+
+                /*
+                    H 欄 = A
+                    I 欄 = B
+                    J 欄 = C
+                */
+
+                const hasVInH =
+                    row[7]
+                        ? String(row[7])
+                            .trim()
+                            .toUpperCase() === "V"
+                        : false;
+
+
+                const hasVInI =
+                    row[8]
+                        ? String(row[8])
+                            .trim()
+                            .toUpperCase() === "V"
+                        : false;
+
+
+                const hasVInJ =
+                    row[9]
+                        ? String(row[9])
+                            .trim()
+                            .toUpperCase() === "V"
+                        : false;
+
+
+                /*
+                    必須同時有：
+                    題目 + 答案
+                */
+
+                if (
+                    qText !== "" &&
+                    rawAns !== ""
+                ) {
+
+                    /*
+                        O / X = 是非題
+                        其他 = 選擇題
+                    */
+
+                    const isTrueFalse =
+                        rawAns === "O" ||
+                        rawAns === "X";
+
+
+                    globalLoadedQuestions.push({
+
+                        id: rowIndex + 1,
+
+                        questionText:
+                            qText,
+
+                        answer:
+                            rawAns,
+
+                        standardAnswer:
+                            rawAns,
+
+                        explanation:
+                            explanation,
+
+                        isTrueFalse:
+                            isTrueFalse,
+
+                        isClassA:
+                            hasVInH,
+
+                        isClassB:
+                            hasVInI,
+
+                        isClassC:
+                            hasVInJ,
+
+                        userAnswer:
+                            ""
+
+                    });
+
+                }
+
+            }
+
+
+            /*
+                更新題庫狀態
+            */
+
+            updateStatus();
+
+
+            /*
+                顯示目前類別題數
+            */
+
+            showCategoryInfo();
+
+
+            alert(
+                `成功讀取 Excel 題庫！\n\n` +
+                `檔案：${file.name}\n` +
+                `共解析 ${globalLoadedQuestions.length} 題。`
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Excel 解析失敗：",
+                error
+            );
+
+
+            alert(
+                "Excel 題庫解析失敗！\n\n" +
+                "請確認檔案格式是否正確。"
+            );
+
+        }
+
+
+        /*
+            清空 input
+            確保下一次選同一個 Excel
+            仍然會觸發 change
+        */
+
+        event.target.value = "";
+
+    };
+
+
+    reader.readAsArrayBuffer(file);
+
+}
+
+
+/* ============================================================
+   3. 類別切換
+============================================================ */
+
+function onCategoryChange() {
+
+    currentCategory =
+        document
+            .getElementById("categorySelect")
+            .value;
+
+
+    /*
+        如果題庫已經載入
+        更新目前類別資訊
+    */
+
+    if (
+        globalLoadedQuestions.length > 0
+    ) {
+
+        showCategoryInfo();
+
+    }
+
+}
+
+
+/* ============================================================
+   4. 顯示目前類別題數
+============================================================ */
+
+function getCategoryQuestions(category) {
+
+    const classProp =
+        classPropMap[category];
+
+
+    if (!classProp) {
+
+        return [];
+
+    }
+
+
+    return globalLoadedQuestions.filter(
+        q => q[classProp]
+    );
+
+}
+
+
+/* ============================================================
+   類別統計
+============================================================ */
+
+function showCategoryInfo() {
+
+    const questions =
+        getCategoryQuestions(
+            currentCategory
+        );
+
+
+    let tfCount = 0;
+
+    let selectCount = 0;
+
+
+    questions.forEach(q => {
 
         if (q.isTrueFalse) {
-            // ================= 是非題邏輯 =================
-            itemEl.innerHTML = `
-                <div class="q-header">
-                    <span class="q-title">${displayIndex}. ${cleanText}</span>
-                </div>
-                <div class="answer-box" id="ans-box-${index}"></div>
-            `;
-            container.appendChild(itemEl);
 
-            const ansBox = itemEl.querySelector(`#ans-box-${index}`);
-            ansBox.addEventListener("click", () => {
-                if (q.userAnswer === "") {
-                    q.userAnswer = "O";
-                } else if (q.userAnswer === "O") {
-                    q.userAnswer = "X";
-                } else {
-                    q.userAnswer = "";
-                }
-                ansBox.textContent = q.userAnswer;
-            });
+            tfCount++;
 
         } else {
-            // ================= 選擇題邏輯 =================
-            const formattedText = cleanText.replace(/\(([1-9])\)/g, (match, p1) => {
-                return `<span class="option-click" data-opt="${p1}">(${p1})</span>`;
-            });
 
-            itemEl.innerHTML = `
-                <div class="q-header">
-                    <span class="q-title">${displayIndex}. ${formattedText}</span>
-                </div>
-                <div class="answer-box" id="ans-box-${index}"></div>
-            `;
-            container.appendChild(itemEl);
+            selectCount++;
 
-            const ansBox = itemEl.querySelector(`#ans-box-${index}`);
-            const optionSpans = itemEl.querySelectorAll(".option-click");
-
-            optionSpans.forEach(span => {
-                span.addEventListener("click", (e) => {
-                    const optValue = e.target.getAttribute("data-opt");
-                    q.userAnswer = optValue;
-                    ansBox.textContent = optValue;
-
-                    optionSpans.forEach(s => s.classList.remove("selected"));
-                    e.target.classList.add("selected");
-                });
-            });
-
-            ansBox.addEventListener("click", () => {
-                q.userAnswer = "";
-                ansBox.textContent = "";
-                optionSpans.forEach(s => s.classList.remove("selected"));
-            });
         }
+
     });
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
-// ===================================================
-// 2. 結束測驗與計算成績 (submitQuiz)
-// ===================================================
-function submitQuiz() {
-    if (currentQuizList.length === 0) {
-        alert("請先讀取題庫並開始測驗！");
-        return;
-    }
+    const total =
+        questions.length;
 
-    let correctCount = 0;
-    let answeredCount = 0;
 
-    currentQuizList.forEach((q, index) => {
-        const isAnswered = q.userAnswer !== "";
-        if (isAnswered) answeredCount++;
+    const statusBox =
+        document.getElementById(
+            "statusBox"
+        );
 
-        const standardAns = q.standardAnswer || q.answer;
-        const isCorrect = (q.userAnswer === standardAns);
-        if (isCorrect) correctCount++;
 
-        const itemEl = document.querySelectorAll(".question-item")[index];
-        const ansBox = itemEl.querySelector(`.answer-box`);
+    statusBox.style.display =
+        "block";
 
-        itemEl.classList.remove("correct-item", "wrong-item");
-        ansBox.classList.remove("correct-box", "wrong-box");
 
-        if (isCorrect) {
-            itemEl.classList.add("correct-item");
-            ansBox.classList.add("correct-box");
-        } else {
-            itemEl.classList.add("wrong-item");
-            ansBox.classList.add("wrong-box");
+    statusBox.innerHTML = `
 
-            let hintEl = itemEl.querySelector(".correct-hint");
-            if (!hintEl) {
-                hintEl = document.createElement("span");
-                hintEl.className = "correct-hint";
-                itemEl.querySelector(".q-header").appendChild(hintEl);
-            }
-            hintEl.textContent = `(正確答案: ${standardAns})`;
-        }
-    });
+        <strong>
+            已載入 ${categoryNames[currentCategory]} 題庫
+        </strong>
 
-    const score = correctCount * 5;
+        <br>
 
-    const summaryResult = document.getElementById("summaryResult");
-    summaryResult.style.display = "block";
-    summaryResult.innerHTML = `
-        <h3>測驗結果</h3>
-        <p style="font-size: 24px; margin: 10px 0;">總分：<strong>${score}</strong> 分 / 100 分</p>
-        <p>答對題數：${correctCount} / 20 題（已答：${answeredCount} 題，未答：${20 - answeredCount} 題）</p>
+        是非題：
+        ${tfCount} 題
+
+        ／
+
+        選擇題：
+        ${selectCount} 題
+
+        ／
+
+        總計：
+        ${total} 題
+
     `;
 
-    summaryResult.scrollIntoView({ behavior: 'smooth' });
+
+    /*
+        更新測驗資訊
+    */
+
+    document.getElementById(
+        "currentCategoryText"
+    ).textContent =
+        currentCategory;
+
+
+    document.getElementById(
+        "currentQuestionCount"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "quizInfo"
+    ).style.display =
+        "flex";
+
 }
 
-// 初始化：頁面載入後自動讀取預設類別試卷
-window.onload = function() {
-    loadAndStartQuiz();
-};
+
+/* ============================================================
+   更新狀態
+============================================================ */
+
+function updateStatus() {
+
+    showCategoryInfo();
+
+}
+
+
+/* ============================================================
+   5. 隨機抽取題目
+============================================================ */
+
+function shuffleArray(array) {
+
+    const result =
+        [...array];
+
+
+    for (
+        let i = result.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() * (i + 1)
+            );
+
+
+        [
+            result[i],
+            result[j]
+        ] = [
+            result[j],
+            result[i]
+        ];
+
+    }
+
+
+    return result;
+
+}
+
+
+/* ============================================================
+   6. 產生 20 題
+============================================================ */
+
+function generateQuestions() {
+
+    /*
+        尚未載入 Excel
+    */
+
+    if (
+        globalLoadedQuestions.length === 0
+    ) {
+
+        alert(
+            "請先點擊「讀取題庫」載入 Excel！"
+        );
+
+        return;
+
+    }
+
+
+    currentCategory =
+        document
+            .getElementById("categorySelect")
+            .value;
+
+
+    const categoryQuestions =
+        getCategoryQuestions(
+            currentCategory
+        );
+
+
+    /*
+        題數不足
+    */
+
+    if (
+        categoryQuestions.length < 20
+    ) {
+
+        alert(
+            `【${categoryNames[currentCategory]}】目前只有 ` +
+            `${categoryQuestions.length} 題，` +
+            `不足 20 題，無法產生完整測驗！`
+        );
+
+        return;
+
+    }
+
+
+    /*
+        隨機打亂
+    */
+
+    const shuffled =
+        shuffleArray(
+            categoryQuestions
+        );
+
+
+    /*
+        取前 20 題
+    */
+
+    currentQuizList =
+        shuffled
+            .slice(0, 20)
+            .map(q => ({
+
+                ...q,
+
+                userAnswer: ""
+
+            }));
+
+
+    /*
+        清空畫面
+    */
+
+    const container =
+        document.getElementById(
+            "questionsContainer"
+        );
+
+
+    container.innerHTML = "";
+
+
+    /*
+        隱藏舊成績
+    */
+
+    document.getElementById(
+        "summaryResult"
+    ).style.display =
+        "none";
+
+
+    /*
+        顯示 20 題
+    */
+
+    currentQuizList.forEach(
+        (q, index) => {
+
+            renderQuestion(
+                q,
+                index,
+                container
+            );
+
+        }
+    );
+
+
+    /*
+        顯示測驗資訊
+    */
+
+    document.getElementById(
+        "currentCategoryText"
+    ).textContent =
+        currentCategory;
+
+
+    document.getElementById(
+        "currentQuestionCount"
+    ).textContent =
+        "20";
+
+
+    /*
+        回到頁面頂端
+    */
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
+}
+
+
+/* ============================================================
+   7. 渲染單一題目
+============================================================ */
+
+function renderQuestion(
+    q,
+    index,
+    container
+) {
+
+    const displayIndex =
+        index + 1;
+
+
+    const itemEl =
+        document.createElement("div");
+
+
+    itemEl.className =
+        "question-item";
+
+
+    /*
+        清除圖片
+    */
+
+    const cleanText =
+        removeImagesFromText(
+            q.questionText
+        );
+
+
+    /* ========================================================
+       是非題
+    ======================================================== */
+
+    if (q.isTrueFalse) {
+
+        itemEl.innerHTML = `
+
+            <div class="q-header">
+
+                <span class="q-title">
+
+                    ${displayIndex}.
+                    ${cleanText}
+
+                </span>
+
+                <div class="explanation">
+
+                    <strong>解析：</strong>
+                    ${escapeHtml(q.explanation || "無")}
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="answer-box"
+                id="ans-box-${index}"
+            >
+            </div>
+
+        `;
+
+
+        container.appendChild(
+            itemEl
+        );
+
+
+        const ansBox =
+            itemEl.querySelector(
+                ".answer-box"
+            );
+
+
+        /*
+            O → X → 空白
+        */
+
+        ansBox.addEventListener(
+            "click",
+            function() {
+
+                if (
+                    q.userAnswer === ""
+                ) {
+
+                    q.userAnswer = "O";
+
+                }
+
+                else if (
+                    q.userAnswer === "O"
+                ) {
+
+                    q.userAnswer = "X";
+
+                }
+
+                else {
+
+                    q.userAnswer = "";
+
+                }
+
+
+                ansBox.textContent =
+                    q.userAnswer;
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       選擇題
+    ======================================================== */
+
+    else {
+
+        /*
+            將：
+
+            (1)
+            (2)
+            (3)
+            (4)
+
+            變成可點擊元素
+        */
+
+        const formattedText =
+            cleanText.replace(
+                /\(([1-9])\)/g,
+                function(
+                    match,
+                    optionNumber
+                ) {
+
+                    return `
+                        <span
+                            class="option-click"
+                            data-opt="${optionNumber}"
+                        >
+                            (${optionNumber})
+                        </span>
+                    `;
+
+                }
+            );
+
+
+        itemEl.innerHTML = `
+
+            <div class="q-header">
+
+                <span class="q-title">
+
+                    ${displayIndex}.
+                    ${formattedText}
+
+                </span>
+
+                <div class="explanation">
+
+                    <strong>解析：</strong>
+                    ${escapeHtml(q.explanation || "無")}
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="answer-box"
+                id="ans-box-${index}"
+            >
+            </div>
+
+        `;
+
+
+        container.appendChild(
+            itemEl
+        );
+
+
+        const ansBox =
+            itemEl.querySelector(
+                ".answer-box"
+            );
+
+
+        const optionSpans =
+            itemEl.querySelectorAll(
+                ".option-click"
+            );
+
+
+        /*
+            點擊選項
+        */
+
+        optionSpans.forEach(
+            span => {
+
+                span.addEventListener(
+                    "click",
+                    function(e) {
+
+                        const optValue =
+                            e.currentTarget
+                                .getAttribute(
+                                    "data-opt"
+                                );
+
+
+                        q.userAnswer =
+                            optValue;
+
+
+                        ansBox.textContent =
+                            optValue;
+
+
+                        /*
+                            清除其他選項
+                        */
+
+                        optionSpans.forEach(
+                            s =>
+                                s.classList.remove(
+                                    "selected"
+                                )
+                        );
+
+
+                        /*
+                            高亮目前選項
+                        */
+
+                        e.currentTarget
+                            .classList.add(
+                                "selected"
+                            );
+
+                    }
+                );
+
+            }
+        );
+
+
+        /*
+            點答案框可以清除答案
+        */
+
+        ansBox.addEventListener(
+            "click",
+            function() {
+
+                q.userAnswer = "";
+
+                ansBox.textContent = "";
+
+
+                optionSpans.forEach(
+                    s =>
+                        s.classList.remove(
+                            "selected"
+                        )
+                );
+
+            }
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   8. 移除圖片
+============================================================ */
+
+function removeImagesFromText(text) {
+
+    if (!text) {
+
+        return "";
+
+    }
+
+
+    /*
+        HTML img
+    */
+
+    let cleaned =
+        text.replace(
+            /<img[^>]*>/gi,
+            ""
+        );
+
+
+    /*
+        Markdown 圖片
+    */
+
+    cleaned =
+        cleaned.replace(
+            /!\[.*?\]\(.*?\)/g,
+            ""
+        );
+
+
+    return cleaned;
+
+}
+
+
+/* ============================================================
+   9. HTML Escape
+============================================================ */
+
+function escapeHtml(text) {
+
+    return String(text)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* ============================================================
+   10. 結束測驗
+============================================================ */
+
+function submitQuiz() {
+
+    if (
+        currentQuizList.length === 0
+    ) {
+
+        alert(
+            "請先點擊「產生題目」開始測驗！"
+        );
+
+        return;
+
+    }
+
+
+    let correctCount = 0;
+
+    let answeredCount = 0;
+
+
+    const questionElements =
+        document.querySelectorAll(
+            ".question-item"
+        );
+
+
+    currentQuizList.forEach(
+        (q, index) => {
+
+            /*
+                是否已回答
+            */
+
+            const isAnswered =
+                q.userAnswer !== "";
+
+
+            if (isAnswered) {
+
+                answeredCount++;
+
+            }
+
+
+            /*
+                標準答案
+            */
+
+            const standardAnswer =
+                q.standardAnswer ||
+                q.answer;
+
+
+            /*
+                判斷正確
+            */
+
+            const isCorrect =
+                q.userAnswer ===
+                standardAnswer;
+
+
+            if (isCorrect) {
+
+                correctCount++;
+
+            }
+
+
+            const itemEl =
+                questionElements[index];
+
+
+            const ansBox =
+                itemEl.querySelector(
+                    ".answer-box"
+                );
+
+
+            /*
+                移除舊狀態
+            */
+
+            itemEl.classList.remove(
+                "correct-item",
+                "wrong-item"
+            );
+
+
+            ansBox.classList.remove(
+                "correct-box",
+                "wrong-box"
+            );
+
+
+            /*
+                移除舊提示
+            */
+
+            const oldHint =
+                itemEl.querySelector(
+                    ".correct-hint"
+                );
+
+
+            if (oldHint) {
+
+                oldHint.remove();
+
+            }
+
+
+            /*
+                正確
+            */
+
+            if (isCorrect) {
+
+                itemEl.classList.add(
+                    "correct-item"
+                );
+
+
+                ansBox.classList.add(
+                    "correct-box"
+                );
+
+            }
+
+
+            /*
+                錯誤
+            */
+
+            else {
+
+                itemEl.classList.add(
+                    "wrong-item"
+                );
+
+
+                ansBox.classList.add(
+                    "wrong-box"
+                );
+
+
+                const hintEl =
+                    document.createElement(
+                        "span"
+                    );
+
+
+                hintEl.className =
+                    "correct-hint";
+
+
+                hintEl.textContent =
+                    `(正確答案：${standardAnswer})`;
+
+
+                itemEl
+                    .querySelector(
+                        ".q-header"
+                    )
+                    .appendChild(
+                        hintEl
+                    );
+
+            }
+
+
+            /*
+                顯示解析
+            */
+
+            const explanation =
+                itemEl.querySelector(
+                    ".explanation"
+                );
+
+
+            if (
+                explanation &&
+                q.explanation
+            ) {
+
+                explanation.classList.add(
+                    "show"
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+        每題 5 分
+    */
+
+    const score =
+        correctCount * 5;
+
+
+    /*
+        寫入歷史紀錄
+    */
+
+    const timeStr =
+        new Date().toLocaleString(
+            "zh-TW",
+            {
+                hour12: false
+            }
+        );
+
+
+    quizHistory.unshift({
+
+        time:
+            timeStr,
+
+        score:
+            score,
+
+        correctCount:
+            correctCount,
+
+        category:
+            currentCategory
+
+    });
+
+
+    /*
+        顯示結果
+    */
+
+    const summaryResult =
+        document.getElementById(
+            "summaryResult"
+        );
+
+
+    summaryResult.style.display =
+        "block";
+
+
+    summaryResult.innerHTML = `
+
+        <h3>
+            測驗結果
+        </h3>
+
+        <p
+            style="
+                font-size:24px;
+                margin:10px 0;
+            "
+        >
+
+            總分：
+
+            <strong>
+                ${score}
+            </strong>
+
+            分 / 100 分
+
+        </p>
+
+
+        <p>
+
+            類別：
+            <strong>
+                ${categoryNames[currentCategory]}
+            </strong>
+
+        </p>
+
+
+        <p>
+
+            答對題數：
+            ${correctCount} / 20 題
+
+            <br>
+
+            已答：
+            ${answeredCount} 題
+
+            ／
+
+            未答：
+            ${20 - answeredCount} 題
+
+        </p>
+
+    `;
+
+
+    /*
+        捲動到結果
+    */
+
+    summaryResult.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "center"
+
+    });
+
+}
+
+
+/* ============================================================
+   11. 歷史紀錄
+============================================================ */
+
+function showHistory() {
+
+    const historyList =
+        document.getElementById(
+            "historyList"
+        );
+
+
+    if (
+        quizHistory.length === 0
+    ) {
+
+        historyList.innerHTML =
+            "<p>尚無歷史紀錄</p>";
+
+    }
+
+
+    else {
+
+        historyList.innerHTML =
+            quizHistory
+                .map(
+                    (item, idx) => `
+
+                        <div
+                            style="
+                                border-bottom:
+                                    1px solid #eee;
+                                padding:
+                                    8px 0;
+                            "
+                        >
+
+                            <strong>
+                                第
+                                ${quizHistory.length - idx}
+                                次測驗
+                            </strong>
+
+                            <br>
+
+                            類別：
+                            ${categoryNames[item.category]}
+
+                            <br>
+
+                            時間：
+                            ${item.time}
+
+                            <br>
+
+                            得分：
+
+                            <span
+                                style="
+                                    color:#1B4965;
+                                    font-weight:bold;
+                                "
+                            >
+                                ${item.score} 分
+                            </span>
+
+                            <br>
+
+                            答對：
+                            ${item.correctCount}/20 題
+
+                        </div>
+
+                    `
+                )
+                .join("");
+
+    }
+
+
+    document.getElementById(
+        "historyModal"
+    ).style.display =
+        "flex";
+
+}
+
+
+/* ============================================================
+   12. 關閉歷史紀錄
+============================================================ */
+
+function closeHistory() {
+
+    document.getElementById(
+        "historyModal"
+    ).style.display =
+        "none";
+
+}
+
+
+/* ============================================================
+   點擊 Modal 外部也可以關閉
+============================================================ */
+
+document
+    .getElementById("historyModal")
+    .addEventListener(
+        "click",
+        function(e) {
+
+            if (
+                e.target === this
+            ) {
+
+                closeHistory();
+
+            }
+
+        }
+    );
+
 </script>
 
 </body>
 </html>
+```
